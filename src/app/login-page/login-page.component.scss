@@ -1,0 +1,15 @@
+form {
+  display: flex;
+  flex-direction: column;
+  width: 15rem;
+  gap: 0.25rem;
+}
+
+.submit {
+  background-color: aquamarine;
+  width: 5rem;
+}
+
+.submit:disabled {
+  background-color: gray;
+}
