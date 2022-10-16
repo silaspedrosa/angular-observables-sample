@@ -1,1 +1,9 @@
-<p>login-page works!</p>
+<form (submit)="onSubmit($event)" action="">
+  <input name="email" (keypress)="onEmailchange($event)" />
+  <input
+    name="password"
+    type="password"
+    (keypress)="onPasswordchange($event)"
+  />
+  <button>Log in</button>
+</form>
