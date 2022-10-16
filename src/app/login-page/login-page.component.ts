@@ -1,3 +1,4 @@
+import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import {
   FormBuilder,
@@ -5,6 +6,7 @@ import {
   FormGroup,
   Validators,
 } from '@angular/forms';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-login-page',
@@ -17,7 +19,11 @@ export class LoginPageComponent implements OnInit {
     password: FormControl<string>;
   }>;
 
-  constructor(fb: FormBuilder) {
+  constructor(
+    fb: FormBuilder,
+    private http: HttpClient,
+    private router: Router
+  ) {
     this.form = fb.group({
       email: fb.control('', {
         nonNullable: true,
@@ -38,7 +44,20 @@ export class LoginPageComponent implements OnInit {
       const value = event.target;
 
       if (this.form.valid) {
-        console.log('submit form!');
+        this.http
+          .post('http://localhost:4000/login', this.form.value)
+          .subscribe(
+            (result) => {
+              console.log('result of request:aaaaaaaaaaaaaaaaaaaaaaaa', result);
+              this.router.navigate(['/home']);
+            },
+            (error) => {
+              console.log('aqui foi erro', error);
+            },
+            () => {
+              console.log('complete, ignore it');
+            }
+          );
       } else {
         console.log('oops! something is wrong');
       }
