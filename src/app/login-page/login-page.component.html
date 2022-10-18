@@ -1,5 +1,12 @@
 <form (submit)="onSubmit($event)" action="" [formGroup]="form">
   <input name="email" formControlName="email" />
   <input name="password" type="password" formControlName="password" />
-  <button class="submit" [disabled]="form.invalid">Log in</button>
+  <ng-container *ngIf="state$ | async as state">
+    <button class="submit" [disabled]="form.invalid">Log in</button>
+    <ng-container [ngSwitch]="state">
+      <div *ngSwitchCase="'inProgress'" class="spinner"></div>
+      <div *ngSwitchCase="'success'">????</div>
+      <div *ngSwitchCase="'error'" class="error">Invalid credentials</div>
+    </ng-container>
+  </ng-container>
 </form>

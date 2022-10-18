@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import {
   FormBuilder,
@@ -7,6 +7,23 @@ import {
   Validators,
 } from '@angular/forms';
 import { Router } from '@angular/router';
+import {
+  catchError,
+  concat,
+  map,
+  Observable,
+  of,
+  Subject,
+  switchMap,
+  tap,
+} from 'rxjs';
+
+export type RequestState = 'idle' | 'inProgress' | 'success' | 'error';
+
+type Form = {
+  email: FormControl<string>;
+  password: FormControl<string>;
+};
 
 @Component({
   selector: 'app-login-page',
@@ -14,10 +31,31 @@ import { Router } from '@angular/router';
   styleUrls: ['./login-page.component.scss'],
 })
 export class LoginPageComponent implements OnInit {
-  form: FormGroup<{
-    email: FormControl<string>;
-    password: FormControl<string>;
-  }>;
+  private submitButtonSubject = new Subject<FormGroup<Form>>();
+  state$: Observable<RequestState> = concat(
+    of('idle' as RequestState),
+    this.submitButtonSubject.pipe(
+      switchMap((form: FormGroup<Form>) => {
+        if (form.invalid) return of('idle' as RequestState);
+        return concat(
+          of('inProgress' as RequestState),
+          this.http.post('http://localhost:4000/login', form.value).pipe(
+            map((result) => {
+              return 'success' as RequestState;
+            }),
+            tap((request) => {
+              this.router.navigateByUrl('/home');
+            }),
+            catchError((error: HttpErrorResponse) => {
+              return of('error' as RequestState);
+            })
+          )
+        );
+      })
+    )
+  );
+
+  form: FormGroup<Form>;
 
   constructor(
     fb: FormBuilder,
@@ -41,26 +79,7 @@ export class LoginPageComponent implements OnInit {
   onSubmit(event: Event) {
     if (event?.target instanceof HTMLFormElement) {
       event.preventDefault();
-      const value = event.target;
-
-      if (this.form.valid) {
-        this.http
-          .post('http://localhost:4000/login', this.form.value)
-          .subscribe(
-            (result) => {
-              console.log('result of request:aaaaaaaaaaaaaaaaaaaaaaaa', result);
-              this.router.navigate(['/home']);
-            },
-            (error) => {
-              console.log('aqui foi erro', error);
-            },
-            () => {
-              console.log('complete, ignore it');
-            }
-          );
-      } else {
-        console.log('oops! something is wrong');
-      }
+      this.submitButtonSubject.next(this.form);
     }
   }
 }
